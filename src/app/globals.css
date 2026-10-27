@@ -1,0 +1,228 @@
+@import "tailwindcss";
+
+/*
+ * Pencil Admin · "graphite on ledger paper"
+ * Restrained palette: warm-tinted neutrals (hue ~80) + one signal accent,
+ * pencil yellow, used as a highlighter (active state, focus, attention),
+ * never as a large fill. All colours OKLCH; no pure black or white.
+ */
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  color-scheme: light;
+
+  --bg: oklch(0.975 0.006 85);
+  --surface: oklch(0.993 0.003 85);
+  --surface-2: oklch(0.958 0.007 85);
+  --line: oklch(0.9 0.008 85);
+  --line-strong: oklch(0.81 0.01 85);
+  --ink: oklch(0.24 0.012 75);
+  --ink-2: oklch(0.41 0.012 75);
+  --muted: oklch(0.53 0.01 75);
+
+  --accent: oklch(0.89 0.155 96);
+  --accent-soft: oklch(0.94 0.09 96);
+  --accent-ink: oklch(0.3 0.06 80);
+  --focus: oklch(0.7 0.16 80);
+  --margin-rule: oklch(0.72 0.1 25 / 0.45);
+
+  --success: oklch(0.5 0.11 155);
+  --success-bg: oklch(0.95 0.035 155);
+  --warning: oklch(0.52 0.11 65);
+  --warning-bg: oklch(0.95 0.05 85);
+  --danger: oklch(0.53 0.18 27);
+  --danger-bg: oklch(0.955 0.03 27);
+  --info: oklch(0.5 0.12 250);
+  --info-bg: oklch(0.955 0.022 250);
+
+  --shadow: 0 1px 0 oklch(0.2 0.01 75 / 0.04), 0 8px 24px -12px oklch(0.2 0.01 75 / 0.12);
+
+  /*
+   * Data colours (dataviz method). Categorical slots in FIXED order, validated
+   * with validate_palette.js against this surface (#fefdfa, --pairs all):
+   * CVD ΔE ≥ 9.2, normal-vision ≥ 24. Slot 3 is < 3:1 → charts always ship
+   * visible legends/labels + a table view. Never use these for text.
+   */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-other: oklch(0.78 0.01 80);
+  /* Status palette: reserved for state, always paired with icon + label. */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --chart-grid: var(--line);
+  --chart-axis: var(--line-strong);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: oklch(0.175 0.008 75);
+  --surface: oklch(0.205 0.009 75);
+  --surface-2: oklch(0.235 0.01 75);
+  --line: oklch(0.29 0.01 75);
+  --line-strong: oklch(0.37 0.012 75);
+  --ink: oklch(0.94 0.008 85);
+  --ink-2: oklch(0.79 0.01 85);
+  --muted: oklch(0.65 0.01 85);
+
+  --accent: oklch(0.86 0.15 95);
+  --accent-soft: oklch(0.36 0.07 92);
+  --accent-ink: oklch(0.22 0.04 85);
+  --focus: oklch(0.83 0.15 92);
+  --margin-rule: oklch(0.6 0.1 25 / 0.35);
+
+  --success: oklch(0.78 0.13 155);
+  --success-bg: oklch(0.29 0.05 155);
+  --warning: oklch(0.82 0.12 80);
+  --warning-bg: oklch(0.31 0.05 80);
+  --danger: oklch(0.74 0.15 25);
+  --danger-bg: oklch(0.3 0.06 25);
+  --info: oklch(0.76 0.1 250);
+  --info-bg: oklch(0.29 0.05 250);
+
+  --shadow: 0 1px 0 oklch(0 0 0 / 0.2), 0 12px 32px -16px oklch(0 0 0 / 0.6);
+
+  /* Dark steps of the same hues, validated against #1a1713 (all ≥ 3:1). */
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-other: oklch(0.45 0.01 80);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-focus: var(--focus);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
+  --color-series-other: var(--series-other);
+  --color-status-good: var(--status-good);
+  --color-status-warning: var(--status-warning);
+  --color-status-serious: var(--status-serious);
+  --color-status-critical: var(--status-critical);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-axis: var(--chart-axis);
+
+  --font-sans: var(--font-plex-sans), var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), var(--font-plex-arabic), ui-monospace, monospace;
+  --font-display: var(--font-instrument), var(--font-naskh), Georgia, serif;
+
+  --shadow-card: var(--shadow);
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+  }
+
+  /* Arabic is cursive: letter-spacing breaks the joins between letters. */
+  :lang(ar) {
+    letter-spacing: normal !important;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      transition-duration: 0ms !important;
+      animation-duration: 0ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* The highlighter swipe: a pencil-yellow band behind the lower half of text. */
+  .mark {
+    background-image: linear-gradient(
+      transparent 58%,
+      var(--accent) 58%,
+      var(--accent) 90%,
+      transparent 90%
+    );
+    background-repeat: no-repeat;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    padding-inline: 0.08em;
+  }
+
+  [data-theme="dark"] .mark {
+    background-image: linear-gradient(
+      transparent 62%,
+      color-mix(in oklch, var(--accent) 55%, transparent) 62%,
+      color-mix(in oklch, var(--accent) 55%, transparent) 92%,
+      transparent 92%
+    );
+  }
+
+  /* Ledger paper: ruled lines + a red margin, used on the sign-in surface. */
+  .ruled {
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(90deg, transparent 63px, var(--margin-rule) 63px, var(--margin-rule) 64px, transparent 64px),
+      repeating-linear-gradient(to bottom, transparent 0, transparent 31px, var(--line) 31px, var(--line) 32px);
+  }
+
+  [dir="rtl"] .ruled {
+    background-image:
+      linear-gradient(270deg, transparent 63px, var(--margin-rule) 63px, var(--margin-rule) 64px, transparent 64px),
+      repeating-linear-gradient(to bottom, transparent 0, transparent 31px, var(--line) 31px, var(--line) 32px);
+  }
+
+  /*
+   * Amounts, codes and dates keep left-to-right digit order inside Arabic
+   * text (a minus sign stays in front, "JV-2026-000001" stays intact).
+   */
+  .num {
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hairline-grid > * + * {
+    border-top: 1px solid var(--line);
+  }
+}
