@@ -1,0 +1,23 @@
+# Never send secrets, local state or tooling into a Docker build context.
+.git
+.github
+.githooks
+.next
+node_modules
+coverage
+graft
+.trail
+*.log
+
+# Secrets and backups
+.env
+.env.*
+*.env
+*.bak
+*.backup
+*.old
+*.orig
+*.pem
+*.key
+*.p12
+*.pfx
