@@ -66,6 +66,8 @@ export interface Account {
   isGroup: boolean;
   systemKey: string | null;
   isActive: boolean;
+  /** False for control accounts (receivables, payables, VAT): documents only. */
+  allowManualPosting: boolean;
 }
 
 export interface AccountRef {
@@ -76,7 +78,7 @@ export interface AccountRef {
 }
 
 export type JournalStatus = "DRAFT" | "POSTED";
-export type JournalSource = "MANUAL" | "OPENING_BALANCE" | "REVERSAL";
+export type JournalSource = "MANUAL" | "OPENING_BALANCE" | "REVERSAL" | "CLOSING";
 
 export interface JournalSummary {
   id: string;
@@ -148,6 +150,9 @@ export interface TrialBalance {
   from: string;
   to: string;
   currency: string;
+  includeClosing: boolean;
+  /** Result of earlier years never closed, carried in retained earnings' opening. */
+  unclosedPriorResult: string;
   rows: TrialBalanceRow[];
   totals: { opening: DebitCredit; movement: DebitCredit; closing: DebitCredit };
   balanced: boolean;
@@ -160,6 +165,7 @@ export interface AccountStatement {
   currency: string;
   openingBalance: string;
   closingBalance: string;
+  unclosedPriorResult: string | null;
   items: Array<{
     id: string;
     date: string;
@@ -190,5 +196,39 @@ export interface FiscalYear {
   startDate: string;
   endDate: string;
   status: "OPEN" | "CLOSED";
+  closedAt: string | null;
+  closingEntryId: string | null;
   periods: FiscalPeriod[];
+}
+
+export type YearEndBlockerCode =
+  | "YEAR_CLOSED"
+  | "YEAR_OPEN"
+  | "YEAR_NOT_ENDED"
+  | "EARLIER_YEAR_OPEN"
+  | "LATER_YEAR_CLOSED"
+  | "DRAFTS_IN_YEAR"
+  | "BOOKS_LOCKED"
+  | "NO_RETAINED_EARNINGS";
+
+export interface YearEndPreview {
+  yearId: string;
+  name: string;
+  status: "OPEN" | "CLOSED";
+  blockers: Array<{ code: YearEndBlockerCode; message: string; name?: string; count?: number; endDate?: string; lockedThrough?: string }>;
+  startDate: string;
+  endDate: string;
+  currency: string;
+  revenue: string;
+  expenses: string;
+  profit: string;
+  closingEntryId: string | null;
+}
+
+export interface BooksOverview {
+  lockDate: string | null;
+  taxLockDate: string | null;
+  openingBalanceDate: string | null;
+  currency: string;
+  openingBalanceEquity: { accountId: string; code: string; balance: string; cleared: boolean } | null;
 }

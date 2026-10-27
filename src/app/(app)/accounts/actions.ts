@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { ApiError } from "@/lib/api";
 import { getI18n } from "@/i18n/server";
 import { assertUuid, isUuid, optional, str, toActionError, type ActionState } from "@/lib/actions";
 import { requireAccess, userApi } from "@/lib/dal";
@@ -40,9 +42,16 @@ export async function createAccount(_prev: ActionState, form: FormData): Promise
   return { ok: true, message: dict.accounts.created };
 }
 
+/** Deactivation is refused while the account holds a balance: report why on the page. */
 export async function setAccountActive(form: FormData): Promise<void> {
   await requireAccess({ feature: Feat.CHART_OF_ACCOUNTS, permission: Perm.ACCOUNTS_MANAGE });
   const id = assertUuid(str(form, "id"));
-  await userApi(`/accounts/${id}`, { method: "PATCH", body: { isActive: form.get("active") === "true" } });
+  try {
+    await userApi(`/accounts/${id}`, { method: "PATCH", body: { isActive: form.get("active") === "true" } });
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    const balance = (error.details as { balance?: string } | undefined)?.balance;
+    redirect(`/accounts?error=${encodeURIComponent(error.code)}${balance ? `&balance=${encodeURIComponent(balance)}` : ""}`);
+  }
   revalidatePath("/accounts");
 }

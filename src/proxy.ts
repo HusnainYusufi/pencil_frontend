@@ -30,7 +30,10 @@ const ACTIVITY_WRITE_MS = 60_000;
  */
 export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-  const csp = contentSecurityPolicy(nonce);
+  // HTTPS-only directives only when the request really arrived over TLS (directly or via Caddy);
+  // a production build served over plain http://localhost must still work.
+  const secureTransport = request.nextUrl.protocol === "https:" || request.headers.get("x-forwarded-proto") === "https";
+  const csp = contentSecurityPolicy(nonce, secureTransport);
   const path = request.nextUrl.pathname;
   const isPublic = PUBLIC_PATHS.has(path);
   const now = Date.now();
@@ -71,13 +74,13 @@ export async function proxy(request: NextRequest) {
     const login = new URL("/login", request.url);
     if (path !== "/") login.searchParams.set("next", path + request.nextUrl.search);
     if (endReason) login.searchParams.set("reason", endReason);
-    return finalize(NextResponse.redirect(login), csp, cookieUpdate);
+    return finalize(NextResponse.redirect(login), csp, cookieUpdate, secureTransport);
   }
   if (session && isPublic) {
-    return finalize(NextResponse.redirect(new URL("/", request.url)), csp, cookieUpdate);
+    return finalize(NextResponse.redirect(new URL("/", request.url)), csp, cookieUpdate, secureTransport);
   }
   if (session && !session.activeTenantId && !COMPANYLESS_PATHS.has(path)) {
-    return finalize(NextResponse.redirect(new URL("/select-company", request.url)), csp, cookieUpdate);
+    return finalize(NextResponse.redirect(new URL("/select-company", request.url)), csp, cookieUpdate, secureTransport);
   }
 
   const requestHeaders = new Headers(request.headers);
@@ -89,7 +92,7 @@ export async function proxy(request: NextRequest) {
     else request.cookies.set(SESSION_COOKIE, cookieUpdate.value);
     requestHeaders.set("cookie", request.cookies.toString());
   }
-  return finalize(NextResponse.next({ request: { headers: requestHeaders } }), csp, cookieUpdate);
+  return finalize(NextResponse.next({ request: { headers: requestHeaders } }), csp, cookieUpdate, secureTransport);
 }
 
 /**
@@ -124,6 +127,7 @@ function finalize(
   response: NextResponse,
   csp: string,
   cookieUpdate: { value: string; session: AppSession } | "clear" | null,
+  secureTransport: boolean,
 ): NextResponse {
   const h = response.headers;
   h.set("Content-Security-Policy", csp);
@@ -135,7 +139,7 @@ function finalize(
   h.set("Cross-Origin-Resource-Policy", "same-origin");
   // Financial data must never be stored by the browser or intermediaries.
   h.set("Cache-Control", "no-store, max-age=0");
-  if (env.cookieSecure) h.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  if (env.cookieSecure && secureTransport) h.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
 
   if (cookieUpdate === "clear") {
     response.cookies.set(SESSION_COOKIE, "", expiredCookieOptions());
@@ -145,7 +149,7 @@ function finalize(
   return response;
 }
 
-function contentSecurityPolicy(nonce: string): string {
+function contentSecurityPolicy(nonce: string, secureTransport: boolean): string {
   const isDev = process.env.NODE_ENV === "development";
   return [
     "default-src 'self'",
@@ -158,7 +162,7 @@ function contentSecurityPolicy(nonce: string): string {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    ...(isDev ? [] : ["upgrade-insecure-requests"]),
+    ...(!isDev && secureTransport ? ["upgrade-insecure-requests"] : []),
   ].join("; ");
 }
 

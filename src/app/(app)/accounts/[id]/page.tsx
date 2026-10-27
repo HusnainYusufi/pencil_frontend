@@ -29,10 +29,12 @@ export default async function AccountStatementPage({ params, searchParams }: Pag
   const from = typeof query.from === "string" && DATE_ONLY.test(query.from) ? query.from : undefined;
   const to = typeof query.to === "string" && DATE_ONLY.test(query.to) ? query.to : undefined;
   const cursor = typeof query.cursor === "string" ? query.cursor.slice(0, 512) : undefined;
+  // From a "before closing" trial balance, hide the year-end closing entry so the figures agree.
+  const includeClosing = query.closing === "0" ? false : undefined;
 
   let statement: AccountStatement;
   try {
-    statement = await userApi<AccountStatement>(`/reports/account-statement/${id}`, { query: { from, to, cursor, limit: 100 } });
+    statement = await userApi<AccountStatement>(`/reports/account-statement/${id}`, { query: { from, to, cursor, limit: 100, includeClosing } });
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) notFound();
     throw error;
@@ -42,7 +44,7 @@ export default async function AccountStatementPage({ params, searchParams }: Pag
   // Show balances on the account's normal side (credit accounts positive when in credit).
   const sign = (amount: string) => (CREDIT_NORMAL.has(account.type) ? negate(amount) : amount);
   const nextHref = statement.nextCursor
-    ? `/accounts/${id}?${new URLSearchParams({ from: statement.from, to: statement.to, cursor: statement.nextCursor })}`
+    ? `/accounts/${id}?${new URLSearchParams({ from: statement.from, to: statement.to, cursor: statement.nextCursor, ...(includeClosing === false && { closing: "0" }) })}`
     : null;
 
   return (

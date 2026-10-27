@@ -17,6 +17,8 @@ export const Perm = {
   JOURNALS_READ: "journals.read",
   JOURNALS_POST: "journals.post",
   PERIODS_MANAGE: "periods.manage",
+  /** Year-end close / reopen, lock dates, opening balance date (owners and admins). */
+  BOOKS_CLOSE: "books.close",
   REPORTS_READ: "reports.read",
 } as const;
 

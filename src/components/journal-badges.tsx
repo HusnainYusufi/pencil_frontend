@@ -20,6 +20,7 @@ export function JournalSourceLabel({ source }: { source: JournalSource }) {
     MANUAL: dict.journals.manual,
     OPENING_BALANCE: dict.journals.openingBalance,
     REVERSAL: dict.journals.reversal,
+    CLOSING: dict.journals.closing,
   };
   return <span className="text-ink-2">{labels[source]}</span>;
 }

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Amount } from "@/components/amount";
 import { Button, Card, cn, EmptyState, Input, PageHeader } from "@/components/ui/primitives";
-import { formatDate } from "@/i18n/format";
+import { formatAmount, formatDate } from "@/i18n/format";
 import { getI18n } from "@/i18n/server";
 import { DATE_ONLY } from "@/lib/actions";
 import { requireAccess, userApi } from "@/lib/dal";
@@ -22,12 +22,14 @@ const cell = "border-b border-line px-4 py-2.5 text-end tabular";
 
 export default async function TrialBalancePage({ searchParams }: PageProps<"/reports/trial-balance">) {
   const ws = await requireAccess({ feature: Feat.LEDGER_REPORTS, permission: Perm.REPORTS_READ });
-  const [{ dict, locale }, params] = await Promise.all([getI18n(), searchParams]);
+  const [{ dict, locale, t }, params] = await Promise.all([getI18n(), searchParams]);
   const from = typeof params.from === "string" && DATE_ONLY.test(params.from) ? params.from : undefined;
   const to = typeof params.to === "string" && DATE_ONLY.test(params.to) ? params.to : undefined;
   const includeZero = params.zero === "1";
+  const includeClosing = params.closing === "1";
 
-  const tb = await userApi<TrialBalance>("/reports/trial-balance", { query: { from, to, includeZero } });
+  const tb = await userApi<TrialBalance>("/reports/trial-balance", { query: { from, to, includeZero, includeClosing } });
+  const unclosed = /[1-9]/.test(tb.unclosedPriorResult);
   const canStatement = ws.has(Feat.LEDGER_REPORTS);
   /** Debit + credit cells; `divided` draws the column-group rule. */
   const pair = (value: DebitCredit, { strong = false, divided = false } = {}) => (
@@ -59,6 +61,10 @@ export default async function TrialBalancePage({ searchParams }: PageProps<"/rep
             <input type="checkbox" name="zero" value="1" defaultChecked={includeZero} className="size-4 accent-ink" />
             {dict.trialBalance.includeZero}
           </label>
+          <label className="flex h-10 items-center gap-2 text-[13px] text-ink-2">
+            <input type="checkbox" name="closing" value="1" defaultChecked={includeClosing} className="size-4 accent-ink" />
+            {dict.trialBalance.includeClosing}
+          </label>
           <Button type="submit" variant="secondary">
             {dict.common.apply}
           </Button>
@@ -72,8 +78,14 @@ export default async function TrialBalancePage({ searchParams }: PageProps<"/rep
       <Card
         flush
         title={`${formatDate(tb.from, locale)} → ${formatDate(tb.to, locale)}`}
+        description={tb.includeClosing ? dict.trialBalance.afterClosing : dict.trialBalance.beforeClosing}
         actions={<span className="num font-mono text-[12px] text-muted">{tb.currency}</span>}
       >
+        {unclosed && (
+          <p className="border-b border-line bg-warning-bg px-5 py-2.5 text-[13px] text-warning">
+            {t(dict.trialBalance.unclosedNote, { amount: `${formatAmount(tb.unclosedPriorResult, tb.currency)} ${tb.currency}` })}
+          </p>
+        )}
         {tb.rows.length === 0 ? (
           <EmptyState title={dict.trialBalance.empty} />
         ) : (
@@ -112,7 +124,7 @@ export default async function TrialBalancePage({ searchParams }: PageProps<"/rep
                       <div className={cn("flex items-baseline gap-2", indentClass(row.depth))}>
                         <span className="num font-mono text-[12px] text-ink-2">{row.code}</span>
                         {canStatement && !row.isGroup ? (
-                          <Link href={`/accounts/${row.accountId}?from=${tb.from}&to=${tb.to}`} className="hover:underline">
+                          <Link href={`/accounts/${row.accountId}?from=${tb.from}&to=${tb.to}${includeClosing ? "" : "&closing=0"}`} className="hover:underline">
                             {localName(row, locale)}
                           </Link>
                         ) : (
