@@ -20,6 +20,13 @@ export const Perm = {
   /** Year-end close / reopen, lock dates, opening balance date (owners and admins). */
   BOOKS_CLOSE: "books.close",
   REPORTS_READ: "reports.read",
+  CONTACTS_READ: "contacts.read",
+  CONTACTS_MANAGE: "contacts.manage",
+  ITEMS_READ: "items.read",
+  ITEMS_MANAGE: "items.manage",
+  TAXES_READ: "taxes.read",
+  /** Tax codes and the company tax profile (owners and admins). */
+  TAXES_MANAGE: "taxes.manage",
 } as const;
 
 /** Feature keys the app checks (mirror of the backend catalog). */
@@ -29,4 +36,7 @@ export const Feat = {
   FISCAL_PERIODS: "accounting.fiscal_periods",
   COST_CENTERS: "accounting.cost_centers",
   LEDGER_REPORTS: "reports.ledger",
+  CONTACTS: "accounting.contacts",
+  ITEMS: "sales.items",
+  TAX_CODES: "tax.codes",
 } as const;

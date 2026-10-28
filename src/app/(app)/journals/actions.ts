@@ -16,6 +16,7 @@ interface LineInput {
   debit?: string;
   credit?: string;
   costCenterId?: string;
+  contactId?: string;
 }
 
 interface JournalInput {
@@ -59,6 +60,7 @@ export async function saveJournal(_prev: ActionState, form: FormData): Promise<A
     debit: line.debit?.replace(/,/g, "").trim() || undefined,
     credit: line.credit?.replace(/,/g, "").trim() || undefined,
     costCenterId: line.costCenterId || undefined,
+    contactId: line.contactId || undefined,
   }));
   if (lines.length < 2) return { ok: false, error: dict.journals.linesNeeded, fieldErrors };
 
@@ -70,6 +72,7 @@ export async function saveJournal(_prev: ActionState, form: FormData): Promise<A
     const bad =
       !isUuid(line.accountId) ||
       (line.costCenterId && !isUuid(line.costCenterId)) ||
+      (line.contactId && !isUuid(line.contactId)) ||
       debit === null ||
       credit === null ||
       debit < 0n ||

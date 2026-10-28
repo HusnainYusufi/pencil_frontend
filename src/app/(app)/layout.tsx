@@ -27,6 +27,13 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       ),
     },
     {
+      label: dict.nav.salesPurchases,
+      items: items(
+        allowed(Feat.CONTACTS, Perm.CONTACTS_READ) && { href: "/contacts", label: dict.nav.contacts, icon: "contacts" },
+        allowed(Feat.ITEMS, Perm.ITEMS_READ) && { href: "/items", label: dict.nav.items, icon: "items" },
+      ),
+    },
+    {
       label: dict.nav.reports,
       items: items(
         allowed(Feat.LEDGER_REPORTS, Perm.REPORTS_READ) && { href: "/reports/trial-balance", label: dict.nav.trialBalance, icon: "trialBalance" },
@@ -34,7 +41,11 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     },
     {
       label: dict.nav.settings,
-      items: items(ws.can(Perm.JOURNALS_READ) && { href: "/settings/periods", label: dict.nav.fiscalPeriods, icon: "periods" }),
+      items: items(
+        ws.can(Perm.JOURNALS_READ) && { href: "/settings/periods", label: dict.nav.fiscalPeriods, icon: "periods" },
+        allowed(Feat.TAX_CODES, Perm.TAXES_READ) && { href: "/settings/taxes", label: dict.nav.taxCodes, icon: "taxes" },
+        ws.can(Perm.TENANT_READ) && { href: "/settings/company", label: dict.nav.companyTax, icon: "company" },
+      ),
     },
   ].filter((section): section is NavSection => section.items.length > 0);
 
