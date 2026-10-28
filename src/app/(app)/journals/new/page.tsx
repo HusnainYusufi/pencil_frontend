@@ -6,7 +6,7 @@ import { requireAccess, userApi } from "@/lib/dal";
 import { isoDate, localName } from "@/lib/format";
 import { Feat, Perm } from "@/lib/permissions";
 import { requestNow } from "@/lib/time";
-import type { Account, Dimension } from "@/lib/types";
+import type { Account, BooksOverview, Dimension } from "@/lib/types";
 import { JournalForm } from "./journal-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,9 +19,10 @@ export default async function NewJournalPage() {
   const { dict, locale } = await getI18n();
   const withCostCenters = ws.has(Feat.COST_CENTERS) && ws.can(Perm.ACCOUNTS_READ);
 
-  const [accounts, costCenters] = await Promise.all([
+  const [accounts, costCenters, books] = await Promise.all([
     userApi<Account[]>("/accounts", { query: { postableOnly: true } }),
     withCostCenters ? userApi<Dimension[]>("/cost-centers") : Promise.resolve([]),
+    userApi<BooksOverview>("/books"),
   ]);
 
   return (
@@ -36,10 +37,17 @@ export default async function NewJournalPage() {
         description={dict.journals.subtitle}
       />
       <JournalForm
-        accounts={accounts.filter((a) => a.isActive).map((a) => ({ id: a.id, label: `${a.code} · ${localName(a, locale)}` }))}
+        accounts={accounts
+          .filter((a) => a.isActive)
+          .map((a) => ({
+            id: a.id,
+            label: `${a.code} · ${localName(a, locale)}${a.allowManualPosting ? "" : ` (${dict.journals.controlAccount})`}`,
+            manual: a.allowManualPosting,
+          }))}
         costCenters={costCenters.filter((c) => c.isActive).map((c) => ({ id: c.id, label: `${c.code} · ${localName(c, locale)}` }))}
         currency={ws.company.baseCurrency}
         today={isoDate(requestNow())}
+        openingBalanceDate={books.openingBalanceDate}
       />
     </div>
   );

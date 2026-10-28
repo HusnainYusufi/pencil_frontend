@@ -2,6 +2,7 @@ import { Search } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Amount } from "@/components/amount";
+import { FormMessage } from "@/components/ui/interactive";
 import { Badge, Button, Card, cn, EmptyState, Input, PageHeader, Table, Td, Th } from "@/components/ui/primitives";
 import { getI18n } from "@/i18n/server";
 import { requireAccess, userApi } from "@/lib/dal";
@@ -73,6 +74,8 @@ export default async function AccountsPage({ searchParams }: PageProps<"/account
     label: `${" ".repeat(a.depth)}${a.code} · ${localName(a, locale)}`,
   }));
   const subtypes = dict.accounts.subtypes as Record<string, string>;
+  const errorMessages = dict.errors as Record<string, string>;
+  const actionError = typeof params.error === "string" ? (errorMessages[params.error] ?? dict.errors.generic) : undefined;
 
   const filterHref = (next: Record<string, string | undefined>) => {
     const query = new URLSearchParams();
@@ -90,6 +93,13 @@ export default async function AccountsPage({ searchParams }: PageProps<"/account
         description={dict.accounts.subtitle}
         actions={canManage && <NewAccountDialog parents={parents} />}
       />
+
+      {actionError && (
+        <FormMessage tone="danger">
+          {actionError}
+          {typeof params.balance === "string" && <span className="num ms-1">({params.balance} {currency})</span>}
+        </FormMessage>
+      )}
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <nav aria-label={dict.accounts.type} className="flex flex-wrap gap-1">
@@ -164,6 +174,11 @@ export default async function AccountsPage({ searchParams }: PageProps<"/account
                           <span className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-muted">{dict.accounts.system}</span>
                         )}
                         {!account.isActive && <Badge tone="neutral">{dict.accounts.inactive}</Badge>}
+                        {!account.allowManualPosting && (
+                          <span title={dict.accounts.controlHint} className="rounded bg-info-bg px-1.5 text-[11px] text-info">
+                            {dict.accounts.control}
+                          </span>
+                        )}
                       </div>
                     </Td>
                     <Td className="hidden text-[13px] text-ink-2 md:table-cell">{subtypes[account.subtype]}</Td>

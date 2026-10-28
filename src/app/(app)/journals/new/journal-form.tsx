@@ -12,6 +12,8 @@ import { saveJournal } from "../actions";
 export interface AccountOption {
   id: string;
   label: string;
+  /** False for control accounts: offered only for opening balances. */
+  manual?: boolean;
 }
 
 interface Line {
@@ -32,18 +34,25 @@ export function JournalForm({
   costCenters,
   currency,
   today,
+  openingBalanceDate,
 }: {
   accounts: AccountOption[];
   /** Empty when the plan has no cost centers: the column is hidden. */
   costCenters: AccountOption[];
   currency: string;
   today: string;
+  /** The company's cut-over date; opening balances are dated on it. */
+  openingBalanceDate: string | null;
 }) {
   const { dict, t } = useI18n();
   const scale = minorUnits(currency);
   const [state, dispatch, pending] = useActionState(saveJournal, {});
   const [lines, setLines] = useState<Line[]>(() => [emptyLine(), emptyLine()]);
   const [intent, setIntent] = useState<"draft" | "post">("post");
+  const [opening, setOpening] = useState(false);
+  const [date, setDate] = useState(today);
+  // Control accounts (receivables, payables, VAT) take opening balances, never manual journals.
+  const selectable = opening ? accounts : accounts.filter((a) => a.manual !== false);
   const idempotencyKey = useRef<string>("");
   const tableRef = useRef<HTMLTableSectionElement>(null);
   const focusLine = useRef<number | null>(null);
@@ -149,7 +158,16 @@ export function JournalForm({
 
       <section className="grid gap-4 rounded-lg border border-line bg-surface p-5 shadow-card sm:grid-cols-[11rem_12rem_1fr]">
         <Field label={dict.journals.entryDate} htmlFor="date" error={state.fieldErrors?.date}>
-          <Input id="date" name="date" type="date" defaultValue={today} required aria-invalid={Boolean(state.fieldErrors?.date)} />
+          <Input
+            id="date"
+            name="date"
+            type="date"
+            value={opening && openingBalanceDate ? openingBalanceDate : date}
+            onChange={(e) => setDate(e.target.value)}
+            readOnly={opening && openingBalanceDate !== null}
+            required
+            aria-invalid={Boolean(state.fieldErrors?.date)}
+          />
         </Field>
         <Field label={dict.journals.reference} htmlFor="reference" optional={dict.common.optional} error={state.fieldErrors?.reference}>
           <Input id="reference" name="reference" maxLength={100} dir="auto" />
@@ -157,10 +175,23 @@ export function JournalForm({
         <Field label={dict.journals.memo} htmlFor="memo" optional={dict.common.optional} error={state.fieldErrors?.memo}>
           <Input id="memo" name="memo" maxLength={1000} dir="auto" />
         </Field>
-        <label className="flex items-center gap-2.5 text-[13px] text-ink-2 sm:col-span-3">
-          <input type="checkbox" name="openingBalance" className="size-4 accent-ink" />
-          {dict.journals.isOpeningBalance}
-        </label>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:col-span-3">
+          <label className="flex items-center gap-2.5 text-[13px] text-ink-2">
+            <input
+              type="checkbox"
+              name="openingBalance"
+              checked={opening}
+              onChange={(e) => setOpening(e.target.checked)}
+              className="size-4 accent-ink"
+            />
+            {dict.journals.isOpeningBalance}
+          </label>
+          {opening && (
+            <p className={cn("text-[12.5px]", openingBalanceDate ? "text-muted" : "text-warning")}>
+              {openingBalanceDate ? t(dict.journals.openingDateHint, { date: openingBalanceDate }) : dict.journals.openingDateMissing}
+            </p>
+          )}
+        </div>
       </section>
 
       <section className="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
@@ -203,7 +234,7 @@ export function JournalForm({
                       className="h-9 text-[13px]"
                     >
                       <option value="">{dict.journals.selectAccount}</option>
-                      {accounts.map((account) => (
+                      {selectable.map((account) => (
                         <option key={account.id} value={account.id}>
                           {account.label}
                         </option>
