@@ -102,6 +102,11 @@ export default async function JournalDetailPage({ params, searchParams }: PagePr
                     ) : (
                       localName(line.account, locale)
                     )}
+                    {line.contact && (
+                      <Link href={`/contacts/${line.contact.id}`} className="mt-0.5 block text-[12px] text-ink-2 hover:underline">
+                        {localName(line.contact, locale)}
+                      </Link>
+                    )}
                   </Td>
                   <Td className="text-ink-2">{line.description ?? "—"}</Td>
                   {withCostCenters && (

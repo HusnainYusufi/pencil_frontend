@@ -14,6 +14,15 @@ export interface AccountOption {
   label: string;
   /** False for control accounts: offered only for opening balances. */
   manual?: boolean;
+  /** Receivable / payable accounts: the line must name a customer / supplier. */
+  party?: "customer" | "supplier";
+}
+
+export interface ContactOption {
+  id: string;
+  label: string;
+  isCustomer: boolean;
+  isSupplier: boolean;
 }
 
 interface Line {
@@ -23,10 +32,11 @@ interface Line {
   debit: string;
   credit: string;
   costCenterId: string;
+  contactId: string;
 }
 
 let lineSeq = 0;
-const emptyLine = (): Line => ({ key: ++lineSeq, accountId: "", description: "", debit: "", credit: "", costCenterId: "" });
+const emptyLine = (): Line => ({ key: ++lineSeq, accountId: "", description: "", debit: "", credit: "", costCenterId: "", contactId: "" });
 const AMOUNT_INPUT = /^[\d,]*\.?\d*$/;
 
 export function JournalForm({
@@ -35,6 +45,7 @@ export function JournalForm({
   currency,
   today,
   openingBalanceDate,
+  contacts,
 }: {
   accounts: AccountOption[];
   /** Empty when the plan has no cost centers: the column is hidden. */
@@ -43,6 +54,7 @@ export function JournalForm({
   today: string;
   /** The company's cut-over date; opening balances are dated on it. */
   openingBalanceDate: string | null;
+  contacts: ContactOption[];
 }) {
   const { dict, t } = useI18n();
   const scale = minorUnits(currency);
@@ -53,6 +65,8 @@ export function JournalForm({
   const [date, setDate] = useState(today);
   // Control accounts (receivables, payables, VAT) take opening balances, never manual journals.
   const selectable = opening ? accounts : accounts.filter((a) => a.manual !== false);
+  const partyOf = (accountId: string) => accounts.find((a) => a.id === accountId)?.party;
+  const withContacts = lines.some((l) => partyOf(l.accountId));
   const idempotencyKey = useRef<string>("");
   const tableRef = useRef<HTMLTableSectionElement>(null);
   const focusLine = useRef<number | null>(null);
@@ -110,7 +124,7 @@ export function JournalForm({
       openingBalance: form.get("openingBalance") === "on",
       lines: lines
         .filter((l) => l.accountId || l.debit || l.credit || l.description)
-        .map(({ accountId, description, debit, credit, costCenterId }) => ({ accountId, description, debit, credit, costCenterId })),
+        .map(({ accountId, description, debit, credit, costCenterId, contactId }) => ({ accountId, description, debit, credit, costCenterId, contactId })),
     };
     const data = new FormData();
     data.set("payload", JSON.stringify(payload));
@@ -205,6 +219,11 @@ export function JournalForm({
                 <th scope="col" className="min-w-[16rem] border-b border-line bg-surface-2/60 px-2 py-2.5 text-start font-medium">
                   {dict.journals.account}
                 </th>
+                {withContacts && (
+                  <th scope="col" className="min-w-[12rem] border-b border-line bg-surface-2/60 px-2 py-2.5 text-start font-medium">
+                    {dict.journals.contact}
+                  </th>
+                )}
                 <th scope="col" className="min-w-[12rem] border-b border-line bg-surface-2/60 px-2 py-2.5 text-start font-medium">
                   {dict.journals.lineDescription}
                 </th>
@@ -229,7 +248,7 @@ export function JournalForm({
                   <td className="border-b border-line px-2 py-1.5">
                     <Select
                       value={line.accountId}
-                      onChange={(e) => update(line.key, { accountId: e.target.value })}
+                      onChange={(e) => update(line.key, { accountId: e.target.value, contactId: "" })}
                       aria-label={dict.journals.account}
                       className="h-9 text-[13px]"
                     >
@@ -241,6 +260,27 @@ export function JournalForm({
                       ))}
                     </Select>
                   </td>
+                  {withContacts && (
+                    <td className="border-b border-line px-2 py-1.5">
+                      {partyOf(line.accountId) && (
+                        <Select
+                          value={line.contactId}
+                          onChange={(e) => update(line.key, { contactId: e.target.value })}
+                          aria-label={dict.journals.contact}
+                          className="h-9 text-[13px]"
+                        >
+                          <option value="">{dict.journals.selectContact}</option>
+                          {contacts
+                            .filter((c) => (partyOf(line.accountId) === "customer" ? c.isCustomer : c.isSupplier))
+                            .map((c) => (
+                              <option key={c.id} value={c.id}>
+                                {c.label}
+                              </option>
+                            ))}
+                        </Select>
+                      )}
+                    </td>
+                  )}
                   <td className="border-b border-line px-2 py-1.5">
                     <Input
                       value={line.description}
@@ -290,7 +330,7 @@ export function JournalForm({
             </tbody>
             <tfoot>
               <tr className="bg-surface-2/40">
-                <td colSpan={costCenters.length > 0 ? 4 : 3} className="px-3 py-3">
+                <td colSpan={3 + (costCenters.length > 0 ? 1 : 0) + (withContacts ? 1 : 0)} className="px-3 py-3">
                   <Button type="button" variant="ghost" size="sm" onClick={addLine}>
                     <Plus className="size-4" aria-hidden />
                     {dict.journals.addLine}

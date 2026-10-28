@@ -6,7 +6,7 @@ import { requireAccess, userApi } from "@/lib/dal";
 import { isoDate, localName } from "@/lib/format";
 import { Feat, Perm } from "@/lib/permissions";
 import { requestNow } from "@/lib/time";
-import type { Account, BooksOverview, Dimension } from "@/lib/types";
+import type { Account, BooksOverview, Contact, Dimension, Page } from "@/lib/types";
 import { JournalForm } from "./journal-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -24,6 +24,9 @@ export default async function NewJournalPage() {
     withCostCenters ? userApi<Dimension[]>("/cost-centers") : Promise.resolve([]),
     userApi<BooksOverview>("/books"),
   ]);
+  const contacts =
+    ws.has(Feat.CONTACTS) && ws.can(Perm.CONTACTS_READ) ? (await userApi<Page<Contact>>("/contacts", { query: { pageSize: 100 } })).items : [];
+  const PARTY: Record<string, "customer" | "supplier"> = { accounts_receivable: "customer", accounts_payable: "supplier" };
 
   return (
     <div className="space-y-6">
@@ -43,7 +46,9 @@ export default async function NewJournalPage() {
             id: a.id,
             label: `${a.code} · ${localName(a, locale)}${a.allowManualPosting ? "" : ` (${dict.journals.controlAccount})`}`,
             manual: a.allowManualPosting,
+            party: a.systemKey ? PARTY[a.systemKey] : undefined,
           }))}
+        contacts={contacts.map((c) => ({ id: c.id, label: localName(c, locale), isCustomer: c.isCustomer, isSupplier: c.isSupplier }))}
         costCenters={costCenters.filter((c) => c.isActive).map((c) => ({ id: c.id, label: `${c.code} · ${localName(c, locale)}` }))}
         currency={ws.company.baseCurrency}
         today={isoDate(requestNow())}

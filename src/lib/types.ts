@@ -116,6 +116,8 @@ export interface JournalDetail extends JournalSummary {
     credit: string;
     branch: { id: string; code: string; name: string } | null;
     costCenter: { id: string; code: string; name: string } | null;
+    contact: Ref | null;
+    taxCode: Ref | null;
   }>;
 }
 
@@ -231,4 +233,136 @@ export interface BooksOverview {
   openingBalanceDate: string | null;
   currency: string;
   openingBalanceEquity: { accountId: string; code: string; balance: string; cleared: boolean } | null;
+}
+
+export interface Ref {
+  id: string;
+  code: string | null;
+  name: string;
+  nameAr: string | null;
+}
+
+export type ContactType = "BUSINESS" | "INDIVIDUAL";
+export const ID_SCHEMES = ["TIN", "CRN", "NAT", "IQA", "PAS", "UNIFIED_700", "MOM", "MLS", "SAG", "GCC", "OTH"] as const;
+export type IdScheme = (typeof ID_SCHEMES)[number];
+
+export interface Contact {
+  id: string;
+  code: string | null;
+  type: ContactType;
+  isCustomer: boolean;
+  isSupplier: boolean;
+  name: string;
+  nameAr: string | null;
+  taxNumber: string | null;
+  idScheme: IdScheme | null;
+  idNumber: string | null;
+  country: string;
+  buildingNumber: string | null;
+  street: string | null;
+  district: string | null;
+  city: string | null;
+  postalCode: string | null;
+  additionalNumber: string | null;
+  email: string | null;
+  phone: string | null;
+  currency: string;
+  paymentTermsDays: number;
+  withholdingTaxCode: Ref | null;
+  notes: string | null;
+  isActive: boolean;
+  balances: { receivable: string; payable: string };
+  einvoiceReadiness: { ready: boolean; invoiceType: "STANDARD" | "SIMPLIFIED" | "BUSINESS" | "INDIVIDUAL" | null; missing: string[] };
+}
+
+export interface ContactStatement {
+  contact: Ref;
+  from: string;
+  to: string;
+  currency: string;
+  openingBalance: string;
+  closingBalance: string;
+  items: Array<{
+    id: string;
+    date: string;
+    journalEntryId: string;
+    number: string;
+    source: JournalSource;
+    reference: string | null;
+    description: string | null;
+    account: { code: string; name: string; nameAr: string | null; systemKey: string | null };
+    debit: string;
+    credit: string;
+    balance: string;
+  }>;
+}
+
+export interface SubledgerReconciliation {
+  ledger: "receivables" | "payables";
+  control: string;
+  subledger: string;
+  unassigned: string;
+  reconciled: boolean;
+}
+
+export type ItemType = "GOODS" | "SERVICE";
+export const UNIT_CODES = ["PCE", "C62", "EA", "SET", "BX", "PK", "CT", "HUR", "DAY", "WEE", "MON", "ANN", "KGM", "GRM", "TNE", "LTR", "MTR", "KMT", "MTK", "MTQ", "LS"] as const;
+
+export interface Item {
+  id: string;
+  code: string;
+  type: ItemType;
+  name: string;
+  nameAr: string | null;
+  description: string | null;
+  unitCode: string;
+  salePrice: string | null;
+  purchasePrice: string | null;
+  salesAccount: Ref | null;
+  purchaseAccount: Ref | null;
+  salesTaxCode: Ref | null;
+  purchaseTaxCode: Ref | null;
+  isActive: boolean;
+}
+
+export type TaxCodeKind = "SALES" | "PURCHASE" | "WITHHOLDING";
+export type TaxTreatment = "STANDARD" | "ZERO_RATED" | "EXEMPT" | "OUT_OF_SCOPE" | "REVERSE_CHARGE" | "IMPORT" | "WITHHOLDING";
+
+export interface TaxCode {
+  id: string;
+  code: string;
+  name: string;
+  nameAr: string;
+  kind: TaxCodeKind;
+  treatment: TaxTreatment;
+  einvoiceCategory: string | null;
+  reasonCode: string | null;
+  reasonText: string | null;
+  recoverable: boolean;
+  returnBox: string | null;
+  isSystem: boolean;
+  isActive: boolean;
+  taxAccount: Ref | null;
+  reverseChargeAccount: Ref | null;
+  currentRate: string | null;
+  rates: Array<{ ratePercent: string; effectiveFrom: string; effectiveTo: string | null }>;
+}
+
+export interface TaxProfile {
+  registration: "NOT_REGISTERED" | "REGISTERED" | "SPECIAL_SALES_TAX";
+  filingFrequency: "MONTHLY" | "QUARTERLY" | "BIMONTHLY";
+  buildingNumber: string | null;
+  street: string | null;
+  district: string | null;
+  city: string | null;
+  postalCode: string | null;
+  additionalNumber: string | null;
+  activityNumber: string | null;
+  legalName: string;
+  tradeName: string | null;
+  country: "SA" | "JO";
+  baseCurrency: string;
+  taxNumber: string | null;
+  commercialRegistration: string | null;
+  einvoiceReadiness: { ready: boolean; missing: string[] };
 }
