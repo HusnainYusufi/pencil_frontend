@@ -1,6 +1,18 @@
 "use client";
 
-import { BookOpenText, CalendarRange, LayoutGrid, ListTree, Scale, type LucideIcon } from "lucide-react";
+import {
+  BookOpenText,
+  Building2,
+  CalendarRange,
+  FileText,
+  HandCoins,
+  LayoutGrid,
+  ListTree,
+  Scale,
+  ShieldCheck,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/components/ui/primitives";
@@ -8,7 +20,7 @@ import { cn } from "@/components/ui/primitives";
 export interface NavItem {
   href: string;
   label: string;
-  icon: "dashboard" | "accounts" | "journals" | "trialBalance" | "periods";
+  icon: "dashboard" | "accounts" | "journals" | "trialBalance" | "periods" | "invoices" | "customers" | "payments" | "company" | "einvoicing";
 }
 
 export interface NavSection {
@@ -22,6 +34,11 @@ const ICONS: Record<NavItem["icon"], LucideIcon> = {
   journals: BookOpenText,
   trialBalance: Scale,
   periods: CalendarRange,
+  invoices: FileText,
+  customers: Users,
+  payments: HandCoins,
+  company: Building2,
+  einvoicing: ShieldCheck,
 };
 
 /** Sections only list what the plan includes AND the role may open (built on the server). */
