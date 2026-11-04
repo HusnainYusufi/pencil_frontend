@@ -20,6 +20,14 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const sections = [
     { items: items({ href: "/", label: dict.nav.dashboard, icon: "dashboard" }) },
     {
+      label: dict.nav.sales,
+      items: items(
+        allowed(Feat.SALES_INVOICES, Perm.INVOICES_READ) && { href: "/invoices", label: dict.nav.invoices, icon: "invoices" },
+        allowed(Feat.SALES_INVOICES, Perm.CONTACTS_READ) && { href: "/customers", label: dict.nav.customers, icon: "customers" },
+        allowed(Feat.SALES_INVOICES, Perm.PAYMENTS_READ) && { href: "/payments", label: dict.nav.payments, icon: "payments" },
+      ),
+    },
+    {
       label: dict.nav.accounting,
       items: items(
         allowed(Feat.CHART_OF_ACCOUNTS, Perm.ACCOUNTS_READ) && { href: "/accounts", label: dict.nav.chartOfAccounts, icon: "accounts" },
@@ -34,7 +42,11 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     },
     {
       label: dict.nav.settings,
-      items: items(ws.can(Perm.JOURNALS_READ) && { href: "/settings/periods", label: dict.nav.fiscalPeriods, icon: "periods" }),
+      items: items(
+        ws.can(Perm.TENANT_READ) && { href: "/settings/company", label: dict.nav.companyProfile, icon: "company" },
+        allowed(Feat.EINVOICING, Perm.INVOICES_READ) && { href: "/settings/einvoicing", label: dict.nav.einvoicing, icon: "einvoicing" },
+        ws.can(Perm.JOURNALS_READ) && { href: "/settings/periods", label: dict.nav.fiscalPeriods, icon: "periods" },
+      ),
     },
   ].filter((section): section is NavSection => section.items.length > 0);
 

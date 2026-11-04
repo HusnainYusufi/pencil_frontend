@@ -8,6 +8,8 @@ export interface ActionState {
   message?: string;
   error?: string;
   fieldErrors?: Record<string, string>;
+  /** Rule failures to list verbatim (e.g. ZATCA requirements: "company.addressStreet: street is required"). */
+  details?: string[];
   /** Fresh idempotency key for the next submission of the same form. */
   nonce?: string;
 }
@@ -32,10 +34,18 @@ export async function toActionError(error: unknown): Promise<ActionState> {
     }
   }
   const reference = error.requestId ? ` (ref ${error.requestId.slice(0, 8)})` : "";
+  // E-invoicing rules point at the company profile, the customer card or the document: list them.
+  const details =
+    error.code.startsWith("EINVOICING") && Array.isArray(error.details)
+      ? (error.details as Array<{ field?: string; errors?: string[]; document?: string }>).map((d) =>
+          [d.field ?? d.document, d.errors?.join("; ")].filter(Boolean).join(": "),
+        )
+      : undefined;
   return {
     ok: false,
     error: (messages[error.code] ?? dict.errors.generic) + (error.status >= 500 ? reference : ""),
     fieldErrors: Object.keys(fieldErrors).length ? fieldErrors : undefined,
+    details: details?.length ? details : undefined,
   };
 }
 

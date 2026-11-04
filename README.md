@@ -13,7 +13,8 @@ Companion repos:
 | Access | Sign in, self-service signup (company plus trial), choose or switch company, sign out |
 | Accounting | Dashboard, chart of accounts (tree, create, deactivate), account statement, journal entries (list, new, draft → post, reverse, delete draft) |
 | Reports | Trial balance (opening, movement and closing, rolled up the account tree) |
-| Settings | Fiscal periods (close and reopen months, open the next year) |
+| Sales | Customers, invoices / credit notes / debit notes (tax-exclusive or inclusive, draft → issue → void), customer payments allocated to invoices, bilingual print view with QR, e-invoice XML download |
+| Settings | Company profile (VAT, CR, national address), e-invoicing (ZATCA device onboarding, submission counts), fiscal periods |
 
 ### Feature-gated navigation
 
@@ -33,6 +34,7 @@ A feature that is switched off disappears from the navigation. Its URLs land on 
   - silent rotation of refresh tokens
   - the company gate
 - **Server Actions** re-check the session, the feature and the permission (`requireAccess`). They validate input before calling the API, and they send idempotency keys when creating or posting entries.
+- **E-invoicing** stays server-side: the API signs and submits to ZATCA; the app only shows status, renders the QR (SVG data URL, allowed by the CSP) and proxies the XML download.
 - **Money** is a decimal string end to end. Totals use BigInt minor units (`src/lib/money.ts`), never floats.
 
 ## i18n

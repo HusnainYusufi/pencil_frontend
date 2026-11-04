@@ -18,6 +18,15 @@ export const Perm = {
   JOURNALS_POST: "journals.post",
   PERIODS_MANAGE: "periods.manage",
   REPORTS_READ: "reports.read",
+  CONTACTS_READ: "contacts.read",
+  CONTACTS_MANAGE: "contacts.manage",
+  INVOICES_READ: "invoices.read",
+  INVOICES_MANAGE: "invoices.manage",
+  INVOICES_ISSUE: "invoices.issue",
+  PAYMENTS_READ: "payments.read",
+  PAYMENTS_MANAGE: "payments.manage",
+  TAXES_MANAGE: "taxes.manage",
+  EINVOICING_MANAGE: "einvoicing.manage",
 } as const;
 
 /** Feature keys the app checks (mirror of the backend catalog). */
@@ -27,4 +36,6 @@ export const Feat = {
   FISCAL_PERIODS: "accounting.fiscal_periods",
   COST_CENTERS: "accounting.cost_centers",
   LEDGER_REPORTS: "reports.ledger",
+  SALES_INVOICES: "sales.invoices",
+  EINVOICING: "tax.einvoicing",
 } as const;
