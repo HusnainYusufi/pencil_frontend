@@ -12,9 +12,11 @@ Companion repos:
 | --- | --- |
 | Access | Sign in, self-service signup (company plus trial), choose or switch company, sign out |
 | Accounting | Dashboard, chart of accounts (tree, create, deactivate), account statement, journal entries (list, new, draft → post, reverse, delete draft) |
-| Reports | Trial balance (opening, movement and closing, rolled up the account tree) |
 | Sales | Customers, invoices / credit notes / debit notes (tax-exclusive or inclusive, draft → issue → void), customer payments allocated to invoices, bilingual print view with QR, e-invoice XML download |
-| Settings | Company profile (VAT, CR, national address), e-invoicing (ZATCA device onboarding, submission counts), fiscal periods |
+| Purchases | Suppliers, bills and supplier credits, expenses paid from cash or bank, supplier payments allocated to bills |
+| Reports | Profit & loss (with last-year comparison), balance sheet, VAT return (ZATCA boxes for KSA), trial balance |
+| Settings | Company profile (VAT, CR, national address), team (email invitations, roles), e-invoicing (ZATCA device onboarding), fiscal periods |
+| Account | Forgot / reset password and invitation acceptance from emailed links |
 
 ### Feature-gated navigation
 

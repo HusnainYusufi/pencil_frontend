@@ -6,7 +6,7 @@ import { useI18n } from "@/i18n/client";
 import { ID_SCHEMES, type Contact } from "@/lib/types";
 import { saveCustomer } from "./actions";
 
-export function CustomerForm({ contact, next }: { contact?: Contact; next?: string }) {
+export function CustomerForm({ contact, next, supplier = false }: { contact?: Contact; next?: string; supplier?: boolean }) {
   const { dict } = useI18n();
   const { state, pending, onSubmit, errors } = useActionForm(saveCustomer);
   const c = dict.customers;
@@ -21,6 +21,7 @@ export function CustomerForm({ contact, next }: { contact?: Contact; next?: stri
     <form onSubmit={onSubmit} className="space-y-6" noValidate>
       {contact && <input type="hidden" name="id" value={contact.id} />}
       {next && <input type="hidden" name="next" value={next} />}
+      {supplier && <input type="hidden" name="role" value="supplier" />}
       <FormMessage tone="danger">{state.error}</FormMessage>
 
       <section className="grid gap-4 rounded-lg border border-line bg-surface p-5 shadow-card sm:grid-cols-2">

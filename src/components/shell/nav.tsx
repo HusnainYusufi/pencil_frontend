@@ -5,6 +5,13 @@ import {
   Building2,
   CalendarRange,
   FileText,
+  FileSpreadsheet,
+  Landmark,
+  Receipt,
+  ShoppingCart,
+  Truck,
+  UsersRound,
+  Wallet,
   HandCoins,
   LayoutGrid,
   ListTree,
@@ -20,7 +27,7 @@ import { cn } from "@/components/ui/primitives";
 export interface NavItem {
   href: string;
   label: string;
-  icon: "dashboard" | "accounts" | "journals" | "trialBalance" | "periods" | "invoices" | "customers" | "payments" | "company" | "einvoicing";
+  icon: "dashboard" | "accounts" | "journals" | "trialBalance" | "periods" | "invoices" | "customers" | "payments" | "company" | "einvoicing" | "bills" | "expenses" | "suppliers" | "supplierPayments" | "incomeStatement" | "balanceSheet" | "vatReturn" | "team";
 }
 
 export interface NavSection {
@@ -39,6 +46,14 @@ const ICONS: Record<NavItem["icon"], LucideIcon> = {
   payments: HandCoins,
   company: Building2,
   einvoicing: ShieldCheck,
+  bills: ShoppingCart,
+  expenses: Receipt,
+  suppliers: Truck,
+  supplierPayments: Wallet,
+  incomeStatement: FileSpreadsheet,
+  balanceSheet: Landmark,
+  vatReturn: FileText,
+  team: UsersRound,
 };
 
 /** Sections only list what the plan includes AND the role may open (built on the server). */

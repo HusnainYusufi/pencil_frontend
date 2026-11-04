@@ -16,7 +16,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     expired: dict.auth.reasonExpired,
     "signed-out": dict.auth.reasonSignedOut,
   };
-  const reason = typeof params.reason === "string" ? reasons[params.reason] : undefined;
+  const reason = params.reset === "1" ? dict.auth.passwordChanged : typeof params.reason === "string" ? reasons[params.reason] : undefined;
   const next = typeof params.next === "string" ? params.next : "/";
 
   return (
@@ -30,6 +30,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           </p>
         )}
         <LoginForm next={next} />
+        <p className="mt-4 text-center text-[13px]">
+          <Link href="/forgot-password" className="text-ink-2 underline underline-offset-4 hover:text-ink">
+            {dict.auth.forgotPassword}
+          </Link>
+        </p>
       </div>
       <p className="mt-5 text-center text-[13.5px] text-ink-2">
         {dict.auth.noAccount}{" "}

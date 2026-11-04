@@ -12,6 +12,9 @@ export function hasPermission(granted: readonly string[], required: string): boo
 export const Perm = {
   TENANT_READ: "tenant.read",
   TENANT_MANAGE: "tenant.manage",
+  MEMBERS_READ: "members.read",
+  MEMBERS_MANAGE: "members.manage",
+  ROLES_READ: "roles.read",
   ACCOUNTS_READ: "accounts.read",
   ACCOUNTS_MANAGE: "accounts.manage",
   JOURNALS_READ: "journals.read",
@@ -26,6 +29,8 @@ export const Perm = {
   PAYMENTS_READ: "payments.read",
   PAYMENTS_MANAGE: "payments.manage",
   TAXES_MANAGE: "taxes.manage",
+  BILLS_READ: "bills.read",
+  BILLS_MANAGE: "bills.manage",
   EINVOICING_MANAGE: "einvoicing.manage",
 } as const;
 
@@ -38,4 +43,8 @@ export const Feat = {
   LEDGER_REPORTS: "reports.ledger",
   SALES_INVOICES: "sales.invoices",
   EINVOICING: "tax.einvoicing",
+  BILLS: "purchases.bills",
+  EXPENSES: "purchases.expenses",
+  FINANCIAL_STATEMENTS: "reports.financial_statements",
+  VAT_RETURNS: "tax.vat_returns",
 } as const;

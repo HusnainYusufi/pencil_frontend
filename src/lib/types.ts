@@ -407,3 +407,121 @@ export interface EInvoicingStatus {
   activeUnit: EInvoicingUnit | null;
   documents: Record<EInvoiceStatus, number>;
 }
+
+/* ── Financial statements & VAT ──────────────────────────────────────── */
+
+export interface StatementSection {
+  key: string;
+  lines: Array<{ accountId: string; code: string; name: string; nameAr: string | null; amount: string; previous?: string }>;
+  total: string;
+  previousTotal?: string;
+}
+
+export interface IncomeStatement {
+  from: string;
+  to: string;
+  currency: string;
+  sections: StatementSection[];
+  grossProfit: string;
+  operatingProfit: string;
+  netProfit: string;
+  previous?: { from: string; to: string; grossProfit: string; operatingProfit: string; netProfit: string };
+}
+
+export interface BalanceSheet {
+  asOf: string;
+  currency: string;
+  sections: StatementSection[];
+  totalAssets: string;
+  totalLiabilities: string;
+  totalEquity: string;
+  totalLiabilitiesAndEquity: string;
+  balanced: boolean;
+}
+
+export interface VatReturn {
+  from: string;
+  to: string;
+  currency: string;
+  country: string;
+  format: "ZATCA" | "GENERIC";
+  outputTax: string;
+  inputTax: string;
+  netVatDue: string;
+  boxes?: Array<{ box: string; key: string; amount: string; adjustment: string; vat: string }>;
+  lines?: Array<{ side: "SALES" | "PURCHASES"; category: TaxCategory; percent: string; amount: string; adjustment: string; tax: string }>;
+}
+
+/* ── Purchases ───────────────────────────────────────────────────────── */
+
+export type PurchaseDocumentType = "BILL" | "CREDIT_NOTE" | "EXPENSE";
+export type PurchaseStatus = "DRAFT" | "POSTED" | "VOID";
+
+export interface PurchaseSummary {
+  id: string;
+  type: PurchaseDocumentType;
+  status: PurchaseStatus;
+  number: string | null;
+  supplierReference: string | null;
+  contact: ContactRef | null;
+  billDate: string;
+  dueDate: string | null;
+  currency: string;
+  taxTotal: string;
+  total: string;
+  amountPaid: string;
+  amountCredited: string;
+  balanceDue: string;
+  postedAt: string | null;
+  createdAt: string;
+}
+
+export interface PurchaseDetail extends PurchaseSummary {
+  pricesIncludeTax: boolean;
+  reason: string | null;
+  notes: string | null;
+  subtotal: string;
+  discountTotal: string;
+  taxableAmount: string;
+  supplier: { name: string; nameAr: string | null; vatNumber: string | null } | null;
+  paidFrom: AccountRef | null;
+  originalBill: { id: string; number: string | null; billDate: string; total: string } | null;
+  adjustments: Array<{ id: string; type: PurchaseDocumentType; number: string | null; status: PurchaseStatus; billDate: string; total: string }>;
+  payments: Array<{ id: string; number: string; date: string; amount: string }>;
+  journalEntry: { id: string; number: string | null } | null;
+  voidedAt: string | null;
+  voidReason: string | null;
+  lines: Array<{
+    id: string;
+    lineNo: number;
+    description: string;
+    quantity: string;
+    unitPrice: string;
+    discount: string;
+    taxRate: { id: string; code: string; name: string; nameAr: string | null };
+    taxPercent: string;
+    account: AccountRef;
+    costCenter: { id: string; code: string; name: string } | null;
+    netAmount: string;
+    taxAmount: string;
+    totalAmount: string;
+  }>;
+}
+
+export interface SupplierPayment {
+  id: string;
+  number: string;
+  status: "POSTED" | "VOID";
+  date: string;
+  contact: ContactRef;
+  account: AccountRef;
+  currency: string;
+  amount: string;
+  method: PaymentMeans;
+  reference: string | null;
+  notes: string | null;
+  journalEntry: { id: string; number: string | null } | null;
+  allocations: Array<{ bill: { id: string; number: string | null; supplierReference: string | null; billDate: string; total: string }; amount: string }>;
+  voidedAt: string | null;
+  createdAt: string;
+}

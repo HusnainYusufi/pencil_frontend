@@ -28,6 +28,15 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       ),
     },
     {
+      label: dict.nav.purchases,
+      items: items(
+        allowed(Feat.BILLS, Perm.BILLS_READ) && { href: "/bills", label: dict.nav.bills, icon: "bills" },
+        allowed(Feat.EXPENSES, Perm.BILLS_READ) && { href: "/expenses", label: dict.nav.expenses, icon: "expenses" },
+        allowed(Feat.BILLS, Perm.CONTACTS_READ) && { href: "/suppliers", label: dict.nav.suppliers, icon: "suppliers" },
+        allowed(Feat.BILLS, Perm.BILLS_READ) && { href: "/supplier-payments", label: dict.nav.supplierPayments, icon: "supplierPayments" },
+      ),
+    },
+    {
       label: dict.nav.accounting,
       items: items(
         allowed(Feat.CHART_OF_ACCOUNTS, Perm.ACCOUNTS_READ) && { href: "/accounts", label: dict.nav.chartOfAccounts, icon: "accounts" },
@@ -37,6 +46,9 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     {
       label: dict.nav.reports,
       items: items(
+        allowed(Feat.FINANCIAL_STATEMENTS, Perm.REPORTS_READ) && { href: "/reports/income-statement", label: dict.nav.incomeStatement, icon: "incomeStatement" },
+        allowed(Feat.FINANCIAL_STATEMENTS, Perm.REPORTS_READ) && { href: "/reports/balance-sheet", label: dict.nav.balanceSheet, icon: "balanceSheet" },
+        allowed(Feat.VAT_RETURNS, Perm.REPORTS_READ) && { href: "/reports/vat-return", label: dict.nav.vatReturn, icon: "vatReturn" },
         allowed(Feat.LEDGER_REPORTS, Perm.REPORTS_READ) && { href: "/reports/trial-balance", label: dict.nav.trialBalance, icon: "trialBalance" },
       ),
     },
@@ -44,6 +56,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       label: dict.nav.settings,
       items: items(
         ws.can(Perm.TENANT_READ) && { href: "/settings/company", label: dict.nav.companyProfile, icon: "company" },
+        ws.can(Perm.MEMBERS_READ) && { href: "/settings/team", label: dict.nav.team, icon: "team" },
         allowed(Feat.EINVOICING, Perm.INVOICES_READ) && { href: "/settings/einvoicing", label: dict.nav.einvoicing, icon: "einvoicing" },
         ws.can(Perm.JOURNALS_READ) && { href: "/settings/periods", label: dict.nav.fiscalPeriods, icon: "periods" },
       ),
