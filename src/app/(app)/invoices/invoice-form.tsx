@@ -23,6 +23,13 @@ export interface CustomerOption extends Option {
   type: "BUSINESS" | "INDIVIDUAL";
 }
 
+export interface EstimateLine {
+  quantity: string;
+  unitPrice: string;
+  discount: string;
+  taxRateId: string;
+}
+
 interface Line {
   key: number;
   description: string;
@@ -44,7 +51,7 @@ const divRound = (a: bigint, b: bigint) => (a * 2n + b) / (2n * b);
  * Estimated line amounts in minor units, mirroring the API's rules (net per
  * line, tax per rate on the summed net). The API's figures are authoritative.
  */
-function estimate(lines: Line[], rates: Map<string, string>, scale: number, inclusive: boolean) {
+export function estimate(lines: EstimateLine[], rates: Map<string, string>, scale: number, inclusive: boolean) {
   const byRate = new Map<string, { rate: bigint; net: bigint }>();
   let invalid = false;
   const rows = lines.map((line) => {

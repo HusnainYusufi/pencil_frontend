@@ -43,7 +43,9 @@ export async function saveCustomer(_prev: ActionState, form: FormData): Promise<
 
   // On update an emptied field is cleared (null); on create it is simply omitted.
   const value = (key: string) => (editing ? str(form, key) || null : optional(form, key));
+  const supplier = str(form, "role") === "supplier";
   const body: Record<string, unknown> = {
+    ...(!editing && supplier && { isCustomer: false, isSupplier: true }),
     type,
     name,
     nameAr: value("nameAr"),
@@ -68,6 +70,7 @@ export async function saveCustomer(_prev: ActionState, form: FormData): Promise<
   revalidatePath("/customers");
   const next = str(form, "next");
   if (!editing && next === "invoice") redirect(`/invoices/new?contact=${contact.id}`);
+  if (!editing && supplier) redirect(next === "bill" ? `/bills/new?contact=${contact.id}` : "/suppliers?done=saved");
   redirect(`/customers/${contact.id}?done=saved`);
 }
 

@@ -14,6 +14,8 @@ import {
 
 /** Reachable signed out (signed-in users are sent on to the app). */
 const PUBLIC_PATHS = new Set(["/login", "/signup"]);
+/** Emailed-link pages: reachable signed in or out (accepting an invite starts a new session). */
+const LINK_PATHS = new Set(["/forgot-password", "/reset-password", "/invite"]);
 /** Signed in, but no company picked yet. */
 const COMPANYLESS_PATHS = new Set(["/select-company"]);
 /** Refresh the access token this long before it expires. */
@@ -33,6 +35,7 @@ export async function proxy(request: NextRequest) {
   const csp = contentSecurityPolicy(nonce);
   const path = request.nextUrl.pathname;
   const isPublic = PUBLIC_PATHS.has(path);
+  const isLinkPage = LINK_PATHS.has(path);
   const now = Date.now();
 
   let session = await unsealSession(request.cookies.get(SESSION_COOKIE)?.value);
@@ -67,7 +70,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (!session && !isPublic) {
+  if (!session && !isPublic && !isLinkPage) {
     const login = new URL("/login", request.url);
     if (path !== "/") login.searchParams.set("next", path + request.nextUrl.search);
     if (endReason) login.searchParams.set("reason", endReason);
@@ -76,7 +79,7 @@ export async function proxy(request: NextRequest) {
   if (session && isPublic) {
     return finalize(NextResponse.redirect(new URL("/", request.url)), csp, cookieUpdate);
   }
-  if (session && !session.activeTenantId && !COMPANYLESS_PATHS.has(path)) {
+  if (session && !session.activeTenantId && !COMPANYLESS_PATHS.has(path) && !isLinkPage) {
     return finalize(NextResponse.redirect(new URL("/select-company", request.url)), csp, cookieUpdate);
   }
 

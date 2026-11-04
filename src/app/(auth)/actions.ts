@@ -94,3 +94,57 @@ export async function signup(_prev: ActionState, form: FormData): Promise<Action
   }
   redirect("/");
 }
+
+const TOKEN = /^[0-9a-f-]{36}\.[A-Za-z0-9_-]{20,100}$/;
+
+export async function requestPasswordReset(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const { dict } = await getI18n();
+  const email = str(form, "email");
+  if (!EMAIL.test(email) || email.length > 254) return { ok: false, fieldErrors: { email: dict.errors.fieldInvalid } };
+  try {
+    await apiRequest("/auth/password/forgot", { method: "POST", body: { email }, client: await clientContext() });
+  } catch (error) {
+    return toActionError(error);
+  }
+  return { ok: true, message: dict.auth.linkSent };
+}
+
+export async function resetPassword(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const { dict } = await getI18n();
+  const token = str(form, "token");
+  const password = typeof form.get("password") === "string" ? (form.get("password") as string) : "";
+  if (!TOKEN.test(token)) return { ok: false, error: dict.auth.linkInvalid };
+  if (password.length < 10 || password.length > 128 || !PASSWORD_RULE.test(password)) {
+    return { ok: false, fieldErrors: { password: dict.auth.passwordHint } };
+  }
+  try {
+    await apiRequest("/auth/password/reset", { method: "POST", body: { token, password }, client: await clientContext() });
+  } catch (error) {
+    return toActionError(error);
+  }
+  (await cookies()).delete(SESSION_COOKIE);
+  redirect("/login?reset=1");
+}
+
+export async function acceptInvitation(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const { dict } = await getI18n();
+  const token = str(form, "token");
+  const needsPassword = str(form, "needsPassword") === "1";
+  const password = typeof form.get("password") === "string" ? (form.get("password") as string) : "";
+  const fullName = str(form, "fullName");
+  if (!TOKEN.test(token)) return { ok: false, error: dict.auth.linkInvalid };
+  if (needsPassword && (password.length < 10 || password.length > 128 || !PASSWORD_RULE.test(password))) {
+    return { ok: false, fieldErrors: { password: dict.auth.passwordHint } };
+  }
+  try {
+    const result = await apiRequest<AuthResponse>("/auth/invitation/accept", {
+      method: "POST",
+      body: { token, password: needsPassword ? password : undefined, fullName: fullName || undefined },
+      client: await clientContext(),
+    });
+    await startSession(result);
+  } catch (error) {
+    return toActionError(error);
+  }
+  redirect("/");
+}
